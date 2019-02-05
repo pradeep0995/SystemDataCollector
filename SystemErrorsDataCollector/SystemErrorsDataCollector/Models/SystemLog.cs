@@ -12,6 +12,6 @@ namespace SystemErrorsDataCollector.Models
         public string Machine_Name { get; set; }
         public string  Last_Updated { get; set; }
 
-        List<SystemEventRecord> Events = new List<SystemEventRecord>();
+        public List<SystemEventRecord> Events = new List<SystemEventRecord>();
     }
 }
