@@ -2,6 +2,9 @@
 using System.Diagnostics.Eventing.Reader;
 using System.Management;
 using SystemErrorsDataCollector.Models;
+using System.Configuration;
+using SystemErrorsDataCollector.Helper;
+using System.Linq;
 
 namespace SystemErrorsDataCollector
 {
@@ -18,11 +21,20 @@ namespace SystemErrorsDataCollector
                 {
                     systemlog.Serial_Number = wmi.GetPropertyValue("SerialNumber").ToString();
                 }
-                catch { }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception.Message);
+                }
             }
             systemlog.Last_Updated = System.DateTime.Now.ToString();
+            int MonthsToSearch = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["MonthsWindow"]);
+            var startTime = System.DateTime.Now.AddMonths(MonthsToSearch);
+            string query = string.Format(@"*[System/Level=1 or System/Level=2] and *[System[TimeCreated[@SystemTime >= '{0}']]]",
+                startTime.ToUniversalTime().ToString("o"));
 
-            string query = "*[System/Level=1 or System/Level=2 ]";
+
+            MappingSection mappingSection = ConfigurationManager.GetSection("Mappings") as MappingSection;
+
             EventLogQuery eventsQuery = new EventLogQuery("System", PathType.LogName, query);
             try
             {
@@ -30,6 +42,8 @@ namespace SystemErrorsDataCollector
                 systemlog.Machine_Name = logReader.ReadEvent().MachineName;
                 for (EventRecord eventdetail = logReader.ReadEvent(); eventdetail != null; eventdetail = logReader.ReadEvent())
                 {
+                    var mappings = mappingSection.ExclusionEvents.Cast<MappingElement>().Where(c => c.EventID.Equals(eventdetail.Id.ToString()) && c.Source.Equals(eventdetail.ProviderName));
+                    if (mappings.Any()) continue;
                     SystemEventRecord systemeventrecord = new SystemEventRecord();
                     systemeventrecord.Level = eventdetail.LevelDisplayName;
                     systemeventrecord.Source = eventdetail.ProviderName;
@@ -46,6 +60,7 @@ namespace SystemErrorsDataCollector
 
             // serialize to json
             var jsonsytemlog = Newtonsoft.Json.JsonConvert.SerializeObject(systemlog);
+
 
         }
     }
