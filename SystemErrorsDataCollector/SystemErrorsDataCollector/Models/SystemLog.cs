@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SystemErrorsDataCollector.Models
 {
-    class SystemLog
+    public class SystemLog
     {
         public string  Serial_Number { get; set; }
         public string Machine_Name { get; set; }

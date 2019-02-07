@@ -5,6 +5,8 @@ using SystemErrorsDataCollector.Models;
 using System.Configuration;
 using SystemErrorsDataCollector.Helper;
 using System.Linq;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace SystemErrorsDataCollector
 {
@@ -12,56 +14,11 @@ namespace SystemErrorsDataCollector
     {
         static void Main(string[] args)
         {
-            SystemLog systemlog = new SystemLog();
-
-            ManagementObjectSearcher ComSerial = new ManagementObjectSearcher("SELECT * FROM Win32_BIOS");
-            foreach (ManagementObject wmi in ComSerial.Get())
-            {
-                try
-                {
-                    systemlog.Serial_Number = wmi.GetPropertyValue("SerialNumber").ToString();
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception.Message);
-                }
-            }
-            systemlog.Last_Updated = System.DateTime.Now.ToString();
-            int MonthsToSearch = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["MonthsWindow"]);
-            var startTime = System.DateTime.Now.AddMonths(MonthsToSearch);
-            string query = string.Format(@"*[System/Level=1 or System/Level=2] and *[System[TimeCreated[@SystemTime >= '{0}']]]",
-                startTime.ToUniversalTime().ToString("o"));
-
-
-            MappingSection mappingSection = ConfigurationManager.GetSection("Mappings") as MappingSection;
-
-            EventLogQuery eventsQuery = new EventLogQuery("System", PathType.LogName, query);
-            try
-            {
-                EventLogReader logReader = new EventLogReader(eventsQuery);
-                systemlog.Machine_Name = logReader.ReadEvent().MachineName;
-                for (EventRecord eventdetail = logReader.ReadEvent(); eventdetail != null; eventdetail = logReader.ReadEvent())
-                {
-                    var mappings = mappingSection.ExclusionEvents.Cast<MappingElement>().Where(c => c.EventID.Equals(eventdetail.Id.ToString()) && c.Source.Equals(eventdetail.ProviderName));
-                    if (mappings.Any()) continue;
-                    SystemEventRecord systemeventrecord = new SystemEventRecord();
-                    systemeventrecord.Level = eventdetail.LevelDisplayName;
-                    systemeventrecord.Source = eventdetail.ProviderName;
-                    systemeventrecord.Time_Created = eventdetail.TimeCreated.ToString();
-                    systemeventrecord.EventId = eventdetail.Id;
-                    systemeventrecord.Message = eventdetail.FormatDescription();
-                    systemlog.Events.Add(systemeventrecord);
-                }
-            }
-            catch (EventLogNotFoundException exception)
-            {
-                Console.WriteLine(exception.Message);
-            }
-
-            // serialize to json
-            var jsonsytemlog = Newtonsoft.Json.JsonConvert.SerializeObject(systemlog);
-
-
+            ErrorDataCollector errorDataCollector = new ErrorDataCollector();
+            SystemLog systemLog = errorDataCollector.CollectSystemErrors();
+            
+            DBClient dbClient = new DBClient();
+            dbClient.UploadErrorsToBlob(systemLog);
         }
     }
 }

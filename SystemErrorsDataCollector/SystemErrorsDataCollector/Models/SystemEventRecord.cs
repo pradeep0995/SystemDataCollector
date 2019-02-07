@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SystemErrorsDataCollector.Models
 {
-    class SystemEventRecord
+    public class SystemEventRecord
     {
         public string  Level{ get; set; }
         public string  Source { get; set; }
