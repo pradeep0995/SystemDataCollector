@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="DBClient.cs" />
     <Compile Include="Helper\CustomSection.cs" />
+    <Compile Include="Helper\ErrorDataCollector.cs" />
     <Compile Include="Models\SystemEventRecord.cs" />
     <Compile Include="Models\SystemLog.cs" />
     <Compile Include="Program.cs" />

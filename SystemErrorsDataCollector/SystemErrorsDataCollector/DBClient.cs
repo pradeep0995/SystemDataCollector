@@ -39,7 +39,8 @@ namespace SystemErrorsDataCollector
             if (!cloudBlobContainer.Exists())
                 cloudBlobContainer.Create();
 
-            CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(systemLog.Serial_Number + "_" + dateString + ".json");
+            CloudBlobDirectory directory = cloudBlobContainer.GetDirectoryReference(systemLog.Serial_Number);
+            CloudBlockBlob cloudBlockBlob = directory.GetBlockBlobReference(dateString + ".json");
             cloudBlockBlob.UploadText(jsonString);
         }
     }
