@@ -2,11 +2,6 @@
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SystemErrorsDataCollector.Models;
 
 namespace SystemErrorsDataCollector
@@ -31,17 +26,24 @@ namespace SystemErrorsDataCollector
 
         public void UploadErrorsToBlob(SystemLog systemLog)
         {
-            var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(systemLog);
-            string dateString = DateTime.Now.ToString("MMddyyyyhhmm");
+            try
+            {
+                var jsonString = JsonConvert.SerializeObject(systemLog);
+                string dateString = DateTime.Now.ToString("MMddyyyyhhmm");
 
-            CloudBlobContainer cloudBlobContainer = blobClient.GetContainerReference(containerName);
+                CloudBlobContainer cloudBlobContainer = blobClient.GetContainerReference(containerName);
 
-            if (!cloudBlobContainer.Exists())
-                cloudBlobContainer.Create();
+                if (!cloudBlobContainer.Exists())
+                    cloudBlobContainer.Create();
 
-            CloudBlobDirectory directory = cloudBlobContainer.GetDirectoryReference(systemLog.Serial_Number);
-            CloudBlockBlob cloudBlockBlob = directory.GetBlockBlobReference(dateString + ".json");
-            cloudBlockBlob.UploadText(jsonString);
+                CloudBlobDirectory directory = cloudBlobContainer.GetDirectoryReference(systemLog.Serial_Number);
+                CloudBlockBlob cloudBlockBlob = directory.GetBlockBlobReference(dateString + ".json");
+                cloudBlockBlob.UploadText(jsonString);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }

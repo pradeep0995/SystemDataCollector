@@ -1,12 +1,5 @@
-﻿using System;
-using System.Diagnostics.Eventing.Reader;
-using System.Management;
-using SystemErrorsDataCollector.Models;
-using System.Configuration;
+﻿using SystemErrorsDataCollector.Models;
 using SystemErrorsDataCollector.Helper;
-using System.Linq;
-using Newtonsoft.Json;
-using System.IO;
 
 namespace SystemErrorsDataCollector
 {

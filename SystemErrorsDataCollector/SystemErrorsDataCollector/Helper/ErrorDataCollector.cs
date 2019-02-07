@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Management;
-using System.Text;
-using System.Threading.Tasks;
 using SystemErrorsDataCollector.Models;
 
 namespace SystemErrorsDataCollector.Helper
